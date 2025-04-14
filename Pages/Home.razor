@@ -1,0 +1,107 @@
+﻿@page "/"
+@inject IJSRuntime JS
+@using Blazor.Extensions
+@using Blazor.Extensions.Canvas.Canvas2D
+@using Game
+
+<PageTitle>Home</PageTitle>
+
+<div class="GameScreenWrapper">
+	<div class="CanvasOverlay" onkeydown="@GetKeyPress" onkeyup="@GetKeyRelease" tabindex="0">
+		<BECanvas @ref="canvas" Width="canvasWidth" Height="canvasHeight"></BECanvas>
+	</div>
+</div>
+
+<div class="Graphics">
+	<img id="background" src="/Assets/SlotMachineBorder.png" hidden @ref="backgroundSprite"/>
+	<img id="background-dark" src="/Assets/SlotMachineBorderDark.png" hidden @ref="backgroundSpriteDark"/>
+	<img id="symbols" src="/Assets/symbols.png" hidden @ref="symbols"/>
+	<img id="star" src="/Assets/starBig.png" hidden @ref="star"/>
+</div>
+
+@code {
+	private BECanvasComponent canvas { get; set; }
+	private Canvas2DContext context { get; set; }
+	private IJSObjectReference JSModule { get; set; }
+
+	private static float canvasScale = 0.8f;
+	private static int canvasWidth = (int)(1080 * canvasScale);
+	private static int canvasHeight = (int)(720 * canvasScale);
+	private string wrapperWidth = canvasWidth.ToString() + "px";
+	private string wrapperHeight = canvasHeight.ToString() + "px";
+
+	private System.Threading.Timer gameTimer;
+	private DateTime lastFrameTime;
+
+	private ElementReference backgroundSprite;
+	private ElementReference backgroundSpriteDark;
+	private ElementReference symbols;
+	private ElementReference star;
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			JSModule = await JS.InvokeAsync<IJSObjectReference>("import", "./Pages/Home.razor.js");
+			await UpdateCanvasDimensions();
+
+			context = await canvas.CreateCanvas2DAsync();
+
+			await SendAssetsToGame();
+
+			lastFrameTime = DateTime.Now;
+			gameTimer = new System.Threading.Timer(GameLoop, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(16));
+		}
+	}
+
+	private async Task UpdateCanvasDimensions()
+	{
+		var dimensions = await JSModule.InvokeAsync<BrowserDimensions>("getBrowserDimensions");
+		canvasWidth = dimensions.width;
+		canvasHeight = dimensions.height;
+		wrapperWidth = canvasWidth.ToString() + "px";
+		wrapperHeight = canvasHeight.ToString() + "px";
+		StateHasChanged();
+	}
+
+	private async Task SendAssetsToGame()
+	{
+		Game.SetComponents(canvas, context, JSModule);
+		Game.SetMachine(backgroundSprite, backgroundSpriteDark, symbols, star);
+	}
+
+	private async void GameLoop(object state)
+	{
+		var currentTime = DateTime.Now;
+		var deltaTime = (float)(currentTime - lastFrameTime).TotalSeconds;
+		lastFrameTime = currentTime;
+
+		await InvokeAsync(async () =>
+		{
+			await RunGame(deltaTime);
+		});
+	}
+
+	public async Task RunGame(float deltaTime)
+	{
+		Game.Update(deltaTime);
+	}
+
+	public void GetKeyPress(KeyboardEventArgs args)
+	{
+		InputController.ChangeInput(args.Key, true);
+		Console.WriteLine(args.Key);
+	}
+
+	public void GetKeyRelease(KeyboardEventArgs args)
+	{
+		InputController.ChangeInput(args.Key, false);
+	}
+
+	public class BrowserDimensions
+	{
+		public int width { get; set; }
+		public int height { get; set; }
+	}
+
+}
