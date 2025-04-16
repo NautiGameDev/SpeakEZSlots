@@ -9,14 +9,14 @@ namespace SpeakEZSlots.Game
         float xPos {  get; set; }
         float yPos { get; set; }
 
-        private int rubyAmt = 5;
-        private int redLotusAmt = 14;
-        private int dandelionAmt = 14;
-        private int blueFlowerAmt = 14;
-        private int cherriesAmt = 10;
-        private int strawberriesAmt = 8;
-        private int emeraldAmt = 4;
-        private int diamondAmt = 3;
+        private int freeSpinSymbolAmt = 4; //Used as a common reward in bonus reels
+        private int blankSymbol1Amt = 0;
+        private int blankSymbol2Amt = 18;
+        private int blankSymbol3Amt = 18;
+        private int uncommonSymbol1Amt = 15;
+        private int uncommonSymbol2Amt = 8;
+        private int rareSymbol1Amt = 5;
+        private int rareSymbol2Amt = 4;
 
         private List<string> reelStrings { get; set; }    
         private List<Symbol> reelSymbols = new List<Symbol>();
@@ -30,59 +30,76 @@ namespace SpeakEZSlots.Game
         public bool isSpinning = false;
         private float yCutOff {  get; set; }
 
-        public Reel(ElementReference symbols, ElementReference star, float xpos, float ypos)
+        public Reel(ElementReference symbols, ElementReference star, ElementReference starParticle, float xpos, float ypos, bool isBonusReel)
         {
+            if (isBonusReel)
+            {
+                ChangeReelProbabilities();
+            }
+
             this.xPos = xpos;
             this.yPos = ypos;
             yCutOff = (float)(1256 * Game.verticalScale);
 
 
             SetUpReels();
-            InstantiateSymbols(symbols, star);
+            InstantiateSymbols(symbols, star, starParticle);
+        }
+
+        private void ChangeReelProbabilities()
+        {
+            freeSpinSymbolAmt = 7; //Used as a common reward in bonus reels
+            blankSymbol1Amt = 19;
+            blankSymbol2Amt = 19;
+            blankSymbol3Amt = 19;
+            uncommonSymbol1Amt = 3;
+            uncommonSymbol2Amt = 2;
+            rareSymbol1Amt = 2;
+            rareSymbol2Amt = 1;
         }
 
         private void SetUpReels()
         {
             List<string> tempReel = new List<string>();
 
-            for (int i = 0; i < rubyAmt; i++)
+            for (int i = 0; i < freeSpinSymbolAmt; i++)
             {
-                tempReel.Add("Ruby");
+                tempReel.Add("Free Spin");
             }
 
-            for (int i = 0; i < redLotusAmt; i++)
+            for (int i = 0; i < blankSymbol1Amt; i++)
             {
-                tempReel.Add("Red Lotus");
+                tempReel.Add("Blank1");
             }
 
-            for (int i = 0; i < dandelionAmt; i++)
+            for (int i = 0; i < blankSymbol2Amt; i++)
             {
-                tempReel.Add("Dandelion");
+                tempReel.Add("Blank2");
             }
 
-            for (int i = 0; i < blueFlowerAmt; i++)
+            for (int i = 0; i < blankSymbol3Amt; i++)
             {
-                tempReel.Add("Blue Flower");
+                tempReel.Add("Blank3");
             }
 
-            for (int i = 0; i < cherriesAmt; i++)
+            for (int i = 0; i < uncommonSymbol1Amt; i++)
             {
-                tempReel.Add("Cherries");
+                tempReel.Add("Uncommon1");
             }
 
-            for (int i = 0; i < strawberriesAmt; i++)
+            for (int i = 0; i < uncommonSymbol2Amt; i++)
             {
-                tempReel.Add("Strawberries");
+                tempReel.Add("Uncommon2");
             }
 
-            for (int i = 0; i < emeraldAmt; i++)
+            for (int i = 0; i < rareSymbol1Amt; i++)
             {
-                tempReel.Add("Emerald");
+                tempReel.Add("Rare1");
             }
 
-            for (int i = 0; i < diamondAmt; i++)
+            for (int i = 0; i < rareSymbol2Amt; i++)
             {
-                tempReel.Add("Diamond");
+                tempReel.Add("Rare2");
             }
 
             reelStrings = ShuffleReel(tempReel);
@@ -93,12 +110,12 @@ namespace SpeakEZSlots.Game
             return tempReel.OrderBy(x => random.Next()).ToList();
         }
 
-        private void InstantiateSymbols(ElementReference symbols, ElementReference star)
+        private void InstantiateSymbols(ElementReference symbols, ElementReference star, ElementReference starParticle)
         {
             for (int i = 0; i < 4; i++)
             {
                 float symbolYPos = (float)(yPos + (250 * Game.verticalScale) * i);
-                Symbol symbol = new Symbol(symbols, star, xPos, symbolYPos, i);
+                Symbol symbol = new Symbol(symbols, star, starParticle, xPos, symbolYPos, i);
                 symbol.ChangeSymbol(reelStrings[i]);
                 reelSymbols.Add(symbol);
             }
@@ -118,7 +135,33 @@ namespace SpeakEZSlots.Game
             {
                 SpinReel(deltaTime);
             }
-            
+        }
+
+        public void UpdateParticles(float deltaTime)
+        {
+            foreach (Symbol symbol in reelSymbols)
+            {
+                if (symbol.particle != null)
+                {
+                    symbol.particle.Update(deltaTime);
+
+                    if (symbol.particle.setForDeletion)
+                    {
+                        symbol.particle = null;
+                    }
+                }
+            }
+        }
+
+        public async Task RenderParticles()
+        {
+            foreach (Symbol symbol in reelSymbols)
+            {
+                if (symbol.particle != null)
+                {
+                    await symbol.particle.Render();
+                }
+            }
         }
 
         private void SpinReel(float deltaTime)

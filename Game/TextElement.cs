@@ -21,7 +21,7 @@ namespace SpeakEZSlots.Game
 
         public async Task Render()
         {
-            await Game.context.SetFontAsync(fontSize + " " + fontFamily);
+            await Game.context.SetFontAsync("bold " + fontSize + " " + fontFamily);
             await Game.context.SetFillStyleAsync("#ffffff");
             await Game.context.SetTextAlignAsync(TextAlign.Center);
             await Game.context.FillTextAsync(message, xPos, yPos);

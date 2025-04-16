@@ -1,4 +1,6 @@
-﻿namespace SpeakEZSlots.Game.MachineStates
+﻿using static SpeakEZSlots.Game.Machine;
+
+namespace SpeakEZSlots.Game.MachineStates
 {
     /*
      This class is responsible for testing all paylines of the slot machine.
@@ -8,12 +10,25 @@
 
     public class PayOutState : State
     {
-        enum PaylinesStates { IDLE, FREESPINTEST, TOPHORIZONTAL, MIDHORIZONTAL, BOTHORIZONTAL, VSHAPE, UPSIDEDOWNV, ZIGZAG, BACKWARDZIGZAG, STOP }
+        enum PaylinesStates { IDLE, 
+            FREESPINTEST, 
+            TOPHORIZONTAL, 
+            MIDHORIZONTAL, 
+            BOTHORIZONTAL, 
+            VSHAPE, 
+            UPSIDEDOWNV, 
+            FORWARDSLASH, 
+            BACKSLASH, 
+            ZIGZAG,
+            BACKWARDZAG,
+            TESTBONUS,
+            STOP }
         PaylinesStates currentState = PaylinesStates.IDLE;
         PaylinesStates nextState = PaylinesStates.TOPHORIZONTAL;
 
         Machine machine {  get; set; }
         UIController uiController { get; set; }
+        SoundController soundController { get; set; }
 
         private Queue<Reel> reels {  get; set; }
         Symbol[] reel1Results { get; set; }
@@ -28,11 +43,21 @@
         private float inputWaitTime = 0.5f;
 
 
-        public PayOutState(Machine machine, Queue<Reel> reels, UIController uiController) 
+        public PayOutState(Machine machine, Queue<Reel> reels, UIController uiController, SoundController soundController) 
         {
             this.machine = machine;
             this.uiController = uiController;
+            this.soundController = soundController;
             this.reels = reels;
+
+            if (machine.winnings > 0)
+            {
+                machine.playerCredits += machine.winnings;
+                machine.winnings = 0;
+
+                uiController.UpdatePlayerCredits(machine.playerCredits);
+                uiController.UpdatePlayerWinnings(machine.winnings);
+            }
 
             ImportResults();
         }
@@ -94,13 +119,26 @@
                     CompileResults(2, 1, 0, 1, 2);
                     break;
 
-                case PaylinesStates.ZIGZAG:
+                case PaylinesStates.FORWARDSLASH:
                     CompileResults(0, 0, 1, 2, 2);
                     break;
 
-                case PaylinesStates.BACKWARDZIGZAG:
+                case PaylinesStates.BACKSLASH:
                     CompileResults(2, 2, 1, 0, 0);
                     break;
+
+                case PaylinesStates.ZIGZAG:
+                    CompileResults(1, 0, 1, 2, 1);
+                    break;
+
+                case PaylinesStates.BACKWARDZAG:
+                    CompileResults(1, 2, 1, 0, 1);
+                    break;
+
+                case PaylinesStates.TESTBONUS:
+                    TestBonus();
+                    break;
+
                 case PaylinesStates.STOP:
                     if (highlighedList != null)
                     {
@@ -108,6 +146,11 @@
                         {
                             symbol.isHighlighted = false;
                         }
+                    }
+
+                    if (machine.playerCredits < machine.minBet)
+                    {
+                        machine.menuState = menuStates.GAMEOVER;
                     }
 
                     machine.ChangeMachineState("Idle");
@@ -121,6 +164,11 @@
             {
                 MoveToNextState();
                 inputTimer = inputWaitTime;
+
+                if (machine.announcingBonus)
+                {
+                    machine.announcingBonus = false;
+                }
             }
         }
 
@@ -146,57 +194,61 @@
          */
         private void TestFreeSpins()
         {
-            List<Symbol> rubies = new List<Symbol>();
+            List<Symbol> freeSpinSymbols = new List<Symbol>();
 
             foreach (Symbol symbol in reel1Results)
             {
-                if (symbol.symbol == "Ruby")
+                if (symbol.symbol == "Free Spin")
                 {
-                    rubies.Add(symbol);
+                    freeSpinSymbols.Add(symbol);
                 }
             }
             foreach (Symbol symbol in reel2Results)
             {
-                if (symbol.symbol == "Ruby")
+                if (symbol.symbol == "Free Spin")
                 {
-                    rubies.Add(symbol);
+                    freeSpinSymbols.Add(symbol);
                 }
             }
             foreach (Symbol symbol in reel3Results)
             {
-                if (symbol.symbol == "Ruby")
+                if (symbol.symbol == "Free Spin")
                 {
-                    rubies.Add(symbol);
+                    freeSpinSymbols.Add(symbol);
                 }
             }
             foreach (Symbol symbol in reel4Results)
             {
-                if (symbol.symbol == "Ruby")
+                if (symbol.symbol == "Free Spin")
                 {
-                    rubies.Add(symbol);
+                    freeSpinSymbols.Add(symbol);
                 }
             }
             foreach (Symbol symbol in reel5Results)
             {
-                if (symbol.symbol == "Ruby")
+                if (symbol.symbol == "Free Spin")
                 {
-                    rubies.Add(symbol);
+                    freeSpinSymbols.Add(symbol);
                 }
             }
 
-            if (rubies.Count >= 3)
+            if (freeSpinSymbols.Count >= 3)
             {
-                uiController.UpdateMessageBar($"You won {rubies.Count} free spins!");
+                uiController.UpdateMessageBar($"You won {freeSpinSymbols.Count} free spins!");
+                
+                soundController.PlayFreeSpinsSound();
                 currentState = PaylinesStates.IDLE;
 
-                highlighedList = rubies;
+                highlighedList = freeSpinSymbols;
                 foreach (Symbol symbol in highlighedList)
                 {
                     symbol.isHighlighted = true;
+                    symbol.SpawnParticle((float)(325 * Game.horizontalScale), (float)(955 * Game.verticalScale));
                 }
 
 
-                machine.freeSpins += rubies.Count();
+                machine.freeSpins += freeSpinSymbols.Count();
+                uiController.UpdateFreeSpins(machine.freeSpins);
                 currentState = PaylinesStates.IDLE;
             }
             else
@@ -222,116 +274,118 @@
 
         private void OrganizeResults(List<Symbol> results)
         {
-            List<Symbol> cherries = new List<Symbol>();
-            List<Symbol> strawberries = new List<Symbol>();
-            List<Symbol> emerald = new List<Symbol>();
-            List<Symbol> diamond = new List<Symbol>();
+            List<Symbol> uncommon1Symbols = new List<Symbol>();
+            List<Symbol> uncommon2Symbols = new List<Symbol>();
+            List<Symbol> rare1Symbols = new List<Symbol>();
+            List<Symbol> rare2Symbols = new List<Symbol>();
 
             foreach (Symbol symbol in results)
             {
-                if (symbol.symbol == "Cherries")
+                if (symbol.symbol == "Uncommon1")
                 {
-                    cherries.Add(symbol);
+                    uncommon1Symbols.Add(symbol);
                 }
-                else if (symbol.symbol == "Strawberries")
+                else if (symbol.symbol == "Uncommon2")
                 {
-                    strawberries.Add(symbol);
+                    uncommon2Symbols.Add(symbol);
                 }
-                else if (symbol.symbol == "Emerald")
+                else if (symbol.symbol == "Rare1")
                 {
-                    emerald.Add(symbol);
+                    rare1Symbols.Add(symbol);
                 }
-                else if (symbol.symbol == "Diamond")
+                else if (symbol.symbol == "Rare2")
                 {
-                    diamond.Add(symbol);
+                    rare2Symbols.Add(symbol);
                 }
             }
 
-            TestForWinnings(cherries, strawberries, emerald, diamond);
+            TestForWinnings(uncommon1Symbols, uncommon2Symbols, rare1Symbols, rare2Symbols);
         }
 
-        private void TestForWinnings(List<Symbol> cherries, List<Symbol> strawberries, List<Symbol> emerald, List<Symbol> diamond)
+        private void TestForWinnings(List<Symbol> uncommon1Symbols, List<Symbol> uncommon2Symbols, List<Symbol> rare1Symbols, List<Symbol> rare2Symbols)
         {
             int calculatedWinnings = 0;
 
-            //Cherries
-            if (cherries.Count == 3)
+            //Uncommon 1 Symbol
+            if (uncommon1Symbols.Count == 3)
+            {
+                calculatedWinnings = (int)(machine.bet * 0.25);
+                highlighedList = uncommon1Symbols;
+            }
+            else if (uncommon1Symbols.Count == 4)
             {
                 calculatedWinnings = machine.bet * 2;
-                highlighedList = cherries;
+                highlighedList = uncommon1Symbols;
             }
-            else if (cherries.Count == 4)
-            {
-                calculatedWinnings = machine.bet * 8;
-                highlighedList = cherries;
-            }
-            else if (cherries.Count == 5)
-            {
-                calculatedWinnings = machine.bet * 30;
-                highlighedList = cherries;
-            }
-
-            //Strawberries
-            else if (strawberries.Count == 3)
-            {
-                calculatedWinnings = machine.bet * 3;
-                highlighedList = strawberries;
-            }
-            else if (strawberries.Count == 4)
+            else if (uncommon1Symbols.Count == 5)
             {
                 calculatedWinnings = machine.bet * 10;
-                highlighedList = strawberries;
-            }
-            else if (strawberries.Count == 5)
-            {
-                calculatedWinnings = machine.bet * 40;
-                highlighedList = strawberries;
+                highlighedList = uncommon1Symbols;
             }
 
-            //Emerald
-            else if (emerald.Count == 3)
+            //Uncommon 2 Symbol
+            else if (uncommon2Symbols.Count == 3)
             {
-                calculatedWinnings = machine.bet * 8;
-                highlighedList = emerald;
+                calculatedWinnings = machine.bet * 1;
+                highlighedList = uncommon2Symbols;
             }
-            else if (emerald.Count == 4)
+            else if (uncommon2Symbols.Count == 4)
+            {
+                calculatedWinnings = machine.bet * 5;
+                highlighedList = uncommon2Symbols;
+            }
+            else if (uncommon2Symbols.Count == 5)
             {
                 calculatedWinnings = machine.bet * 25;
-                highlighedList = emerald;
-            }
-            else if (emerald.Count == 5)
-            {
-                calculatedWinnings = machine.bet * 100;
-                highlighedList = emerald;
+                highlighedList = uncommon2Symbols;
             }
 
-            //Diamond
-            else if (diamond.Count == 3)
+            //Rare 1 Symbol
+            else if (rare1Symbols.Count == 3)
+            {
+                calculatedWinnings = machine.bet * 5;
+                highlighedList = rare1Symbols;
+            }
+            else if (rare1Symbols.Count == 4)
             {
                 calculatedWinnings = machine.bet * 25;
-                highlighedList = diamond;
+                highlighedList = rare1Symbols;
             }
-            else if (diamond.Count == 4)
+            else if (rare1Symbols.Count == 5)
             {
-                calculatedWinnings = machine.bet * 100;
-                highlighedList = diamond;
+                calculatedWinnings = machine.bet * 125;
+                highlighedList = rare1Symbols;
             }
-            else if (diamond.Count == 5)
+
+            //Rare 2 Symbol
+            else if (rare2Symbols.Count == 3)
             {
-                calculatedWinnings = machine.bet * 500;
-                highlighedList = diamond;
+                calculatedWinnings = machine.bet * 10;
+                highlighedList = rare2Symbols;
+            }
+            else if (rare2Symbols.Count == 4)
+            {
+                calculatedWinnings = machine.bet * 50;
+                highlighedList = rare2Symbols;
+            }
+            else if (rare2Symbols.Count == 5)
+            {
+                calculatedWinnings = machine.bet * 250;
+                highlighedList = rare2Symbols;
             }
 
 
             if (calculatedWinnings > 0)
             {
                 uiController.UpdateMessageBar($"You won {calculatedWinnings} credits!");
+                soundController.PlayGainSound();
                 machine.winnings += calculatedWinnings;
-                uiController.UpdatePlayerWinnings(calculatedWinnings);
+                uiController.UpdatePlayerWinnings(machine.winnings);
 
                 foreach (Symbol symbol in highlighedList)
                 {
                     symbol.isHighlighted = true;
+                    symbol.SpawnParticle((float)(245 * Game.horizontalScale), (float)(1255 * Game.verticalScale));
                 }
 
                 currentState = PaylinesStates.IDLE;
@@ -360,25 +414,36 @@
                 case PaylinesStates.VSHAPE:
                     return PaylinesStates.UPSIDEDOWNV;
                 case PaylinesStates.UPSIDEDOWNV:
+                    return PaylinesStates.FORWARDSLASH;
+                case PaylinesStates.FORWARDSLASH:
+                    return PaylinesStates.BACKSLASH;
+                case PaylinesStates.BACKSLASH:
                     return PaylinesStates.ZIGZAG;
                 case PaylinesStates.ZIGZAG:
-                    return PaylinesStates.BACKWARDZIGZAG;
-                case PaylinesStates.BACKWARDZIGZAG:
+                    return PaylinesStates.BACKWARDZAG;
+                case PaylinesStates.BACKWARDZAG:
+                    return PaylinesStates.TESTBONUS;
+                case PaylinesStates.TESTBONUS:
                     return PaylinesStates.STOP;
                 default:
-                    //if (highlighedList != null)
-                    //{
-                    //    foreach (Symbol symbol in highlighedList)
-                    //    {
-                    //        symbol.isHighlighted = false;
-                    //    }
-                    //}
-
-                    //machine.ChangeMachineState("Idle");
                     return PaylinesStates.IDLE;
             }
         }
 
-        
+        private void TestBonus()
+        {
+            if(machine.totalSpins >= machine.spinsForBonus)
+            {
+                machine.announcingBonus = true;
+                soundController.PlayBonusRoundSound();
+                currentState = PaylinesStates.IDLE;
+                nextState = FindNextState();
+            }
+            else
+            {
+                nextState = FindNextState();
+                currentState = nextState;
+            }
+        }
     }
 }

@@ -12,6 +12,9 @@ namespace SpeakEZSlots.Game
         private int starBaseWidth { set; get; }
         private int starBaseHeight { set; get; }
 
+        private ElementReference starParticle { set; get; }
+        public Particle particle { set; get; }
+
         public string symbol {  set; get; }
         private int spriteIndex { set; get; } = 0; //Sprite index corresponds to the y position on sprite sheet
         public int symbolIndex { set; get; } //Symbol index corresponds to the index on the reel (0-71)
@@ -23,7 +26,7 @@ namespace SpeakEZSlots.Game
         public bool isSpinning = false;
         public bool isHighlighted = false;
 
-        public Symbol(ElementReference symbols, ElementReference star, float xPos, float yPos, int symbolIndex)
+        public Symbol(ElementReference symbols, ElementReference star, ElementReference starParticle, float xPos, float yPos, int symbolIndex)
         {
             this.symbolsSprite = symbols;
             spriteBaseWidth = (int)(250 * Game.horizontalScale);
@@ -32,6 +35,9 @@ namespace SpeakEZSlots.Game
             starSprite = star;
             starBaseWidth = (int)(250 * Game.horizontalScale);
             starBaseHeight = (int)(250 * Game.verticalScale);
+
+            this.starParticle = starParticle;
+
             this.symbolIndex = symbolIndex;
             
             this.xPos = xPos;
@@ -45,28 +51,28 @@ namespace SpeakEZSlots.Game
             
             switch(symbolName)
             {
-                case ("Ruby"):
+                case ("Free Spin"):
                     spriteIndex = 0;
                     break;
-                case ("Red Lotus"):
+                case ("Blank1"):
                     spriteIndex = 1; 
                     break;
-                case ("Dandelion"):
+                case ("Blank2"):
                     spriteIndex = 2;
                     break;
-                case ("Blue Flower"):
+                case ("Blank3"):
                     spriteIndex = 3;
                     break;
-                case ("Cherries"):
+                case ("Uncommon1"):
                     spriteIndex = 4;
                     break;
-                case ("Strawberries"):
+                case ("Uncommon2"):
                     spriteIndex = 5;
                     break;
-                case ("Emerald"):
+                case ("Rare1"):
                     spriteIndex= 6;
                     break;
-                case ("Diamond"):
+                case ("Rare2"):
                     spriteIndex = 7;
                     break;
             }
@@ -75,8 +81,27 @@ namespace SpeakEZSlots.Game
 
         }
 
+        public void SpawnParticle(float xTarget, float yTarget)
+        {
+            particle = new Particle(starParticle, (xPos + (spriteBaseWidth/2)), (yPos + (spriteBaseHeight/2)), xTarget, yTarget);
+        }
+
+        public void Update(float deltaTime)
+        {
+            //if (particle != null)
+            //{
+            //    particle.Update(deltaTime);
+
+            //    if  (particle.setForDeletion)
+            //    {
+            //        particle = null;
+            //    }
+            //}
+        }
+
         public async Task Render()
         {
+
             if (isHighlighted)
             {
                 await Game.context.DrawImageAsync(

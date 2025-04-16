@@ -13,10 +13,18 @@
 </div>
 
 <div class="Graphics">
+	<img id="main-menu" src="/Assets/MainMenu.png" hidden @ref="mainMenuScreen"/>
+	<img id="gameover-screen" src="/Assets/GameoverScreen.png" hidden @ref="gameOverScreen"/>
 	<img id="background" src="/Assets/SlotMachineBorder.png" hidden @ref="backgroundSprite"/>
 	<img id="background-dark" src="/Assets/SlotMachineBorderDark.png" hidden @ref="backgroundSpriteDark"/>
+	<img id="background-bonus" src="/Assets/SlotMachineBorder_Bonus.png" hidden @ref="backgroundBonusSprite"/>
+	<img id="background-bonus-dark" src="/Assets/SlotMachineBorderDark_Bonus.png" hidden @ref="backgroundBonusSpriteDark"/>
 	<img id="symbols" src="/Assets/symbols.png" hidden @ref="symbols"/>
+	<img id="bonus-symbols" src="/Assets/bonusSymbols.png" hidden @ref="bonusSymbols"/>
 	<img id="star" src="/Assets/starBig.png" hidden @ref="star"/>
+	<img id="star-particle" src="/Assets/starParticle.png" hidden @ref="starParticle" />
+	<img id="bonus-announcement" src="/Assets/BonusRoundAnnouncement.png" hidden @ref="bonusRoundAnnouncement"/>
+
 </div>
 
 @code {
@@ -35,8 +43,15 @@
 
 	private ElementReference backgroundSprite;
 	private ElementReference backgroundSpriteDark;
+	private ElementReference backgroundBonusSprite;
+	private ElementReference backgroundBonusSpriteDark;
 	private ElementReference symbols;
+	private ElementReference bonusSymbols;
 	private ElementReference star;
+	private ElementReference starParticle;
+	private ElementReference bonusRoundAnnouncement;
+	private ElementReference mainMenuScreen;
+	private ElementReference gameOverScreen;
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
@@ -51,6 +66,8 @@
 
 			lastFrameTime = DateTime.Now;
 			gameTimer = new System.Threading.Timer(GameLoop, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(16));
+
+			
 		}
 	}
 
@@ -67,7 +84,7 @@
 	private async Task SendAssetsToGame()
 	{
 		Game.SetComponents(canvas, context, JSModule);
-		Game.SetMachine(backgroundSprite, backgroundSpriteDark, symbols, star);
+		Game.SetMachine(mainMenuScreen, gameOverScreen, backgroundSprite, backgroundSpriteDark, backgroundBonusSprite, backgroundBonusSpriteDark, symbols, bonusSymbols, star, starParticle, bonusRoundAnnouncement);
 	}
 
 	private async void GameLoop(object state)

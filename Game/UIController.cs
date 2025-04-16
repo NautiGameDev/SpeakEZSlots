@@ -10,6 +10,7 @@
         TextElement pBet { get; set; }
         TextElement pWinnings { get; set; }
         TextElement messageBar { get; set; }
+        TextElement freeSpins { get; set; }
 
         Machine machine { get; set; }
 
@@ -30,8 +31,9 @@
             string textSize = fontSize.ToString() + "px";
 
             pCredits = new TextElement(machine.playerCredits.ToString(), textSize, (float)(245 * Game.horizontalScale), (float)(595 * Game.verticalScale));
-            pBet = new TextElement(machine.bet.ToString(), textSize, (float)(245 * Game.horizontalScale), (float)(955 * Game.verticalScale));
+            pBet = new TextElement(machine.bet.ToString(), textSize, (float)(165 * Game.horizontalScale), (float)(950 * Game.verticalScale));
             pWinnings = new TextElement(machine.winnings.ToString(), textSize, (float)(245 * Game.horizontalScale), (float)(1255 * Game.verticalScale));
+            freeSpins = new TextElement(machine.freeSpins.ToString(), textSize, (float)(320 * Game.horizontalScale), (float)(950 * Game.verticalScale));
 
             fontSize = (int)(48 * Game.verticalScale);
             textSize = fontSize.ToString() + "px";
@@ -58,6 +60,11 @@
             messageBar.UpdateMessage(message);
         }
 
+        public void UpdateFreeSpins(int value)
+        {
+            freeSpins.UpdateMessage(value.ToString());
+        }
+
         public void TransferWinnings(float deltaTime)
         {
             if (winningsTimer > 0)
@@ -80,7 +87,7 @@
             
         }
 
-        public async void Render()
+        public async Task Render()
         {
             if (pCredits != null)
             {
@@ -97,10 +104,17 @@
                 await pWinnings.Render();
             }
 
-            if (messageBar != null)
+            
+            if (freeSpins != null)
             {
-                await messageBar.Render();
+                await freeSpins.Render();
             }
+            
+
+            //if (messageBar != null)
+            //{
+            //    await messageBar.Render();
+            //}
         }
     }
 }

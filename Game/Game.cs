@@ -16,7 +16,7 @@ namespace SpeakEZSlots.Game
         //Webpage Reference
         public static BECanvasComponent canvas {  get; private set; }
         public static Canvas2DContext context { get; private set; }
-        public static IJSObjectReference JSModule { get; private set; } //Might not need
+        public static IJSObjectReference JSModule { get; private set; }
 
         //Game Calculations
         public static double horizontalScale { get; private set; }
@@ -37,9 +37,9 @@ namespace SpeakEZSlots.Game
             verticalScale = (canvas.Height / BaseGameParams["Height"]);
         }
 
-        public static void SetMachine(ElementReference background, ElementReference backgroundDark, ElementReference symbols, ElementReference star)
+        public static void SetMachine(ElementReference mainMenuScreen, ElementReference gameOverScreen, ElementReference background, ElementReference backgroundDark, ElementReference backgroundBonus, ElementReference backgroundBonusDark, ElementReference symbols, ElementReference bonusSymbols, ElementReference star, ElementReference starParticle, ElementReference bonusRoundAnnouncement)
         {
-            currentMachine = new Machine(background, backgroundDark, symbols, star);
+            currentMachine = new Machine(mainMenuScreen, gameOverScreen, background, backgroundDark, backgroundBonus, backgroundBonusDark, symbols, bonusSymbols, star, starParticle, bonusRoundAnnouncement);
         }
 
         public static void Update(float deltaTime)

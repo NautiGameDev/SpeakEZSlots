@@ -4,7 +4,11 @@
     {
         public static Dictionary<string, bool> playerInput = new Dictionary<string, bool>()
         {
-            { " ", false }
+            { " ", false },
+            { "ArrowUp", false },
+            { "ArrowDown", false },
+            { "ArrowLeft", false },
+            { "ArrowRight", false }
         };
 
         public static void ChangeInput(string key, bool value)

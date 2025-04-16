@@ -9,15 +9,17 @@
     {
         public Machine machine {  get; set; }
         private UIController uiController { get; set; }
+        private SoundController SoundController { get; set; }
         private Queue<Reel> reels {  get; set; }
 
         private float spinTimer = 0.75f;
         private float timeToSpin = 0.75f;
 
-        public SpinState(Machine machine, Queue<Reel> reels, UIController uiController)
+        public SpinState(Machine machine, Queue<Reel> reels, UIController uiController, SoundController soundController)
         {
             this.machine = machine;
             this.uiController = uiController;
+            this.SoundController = soundController;
             this.reels = reels;
 
             uiController.UpdateMessageBar("Spinning! Good luck!");
@@ -54,6 +56,7 @@
                     reels.Dequeue();
                     reels.Enqueue(firstReel);
                     spinTimer = timeToSpin;
+                    SoundController.PlayStopSound();
                 }
                 else
                 {
