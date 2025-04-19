@@ -10,11 +10,11 @@ https://nauti312.itch.io/speak-ez-slots
 
 This game runs completely in a web browser, so no download is required. However, the game requires a desktop/laptop to play since keyboard inputs are needed to interact with the game completely.
 
-Spin Reels - Space Bar
-Increase Bet - Up Arrow
-Decrease Bet - Down Arrow
-Minimum Bet - Left Arrow
-Maximum Bet - Right Arrow
+* Spin Reels - Space Bar
+* Increase Bet - Up Arrow
+* Decrease Bet - Down Arrow
+* Minimum Bet - Left Arrow
+* Maximum Bet - Right Arrow
 
 ## Credits
 
