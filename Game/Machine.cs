@@ -10,7 +10,7 @@ namespace SpeakEZSlots.Game
 
         State currentState {  get; set; }
         UIController uiController { get; set; }
-        SoundController soundController { get; set; }
+        public SoundController soundController { get; set; }
 
         Overlay mainMenu { get; set; }
         Overlay gameover {  get; set; }
@@ -19,6 +19,7 @@ namespace SpeakEZSlots.Game
         Overlay bonusOverlay { get; set; }
         Overlay bonusOverlayDark { get; set; }
         Overlay bonusRoundAnnouncement {  get; set; }
+        Overlay howToPlayScreen { get; set; }
 
 
         private Queue<Reel> reels = new Queue<Reel>();
@@ -36,12 +37,14 @@ namespace SpeakEZSlots.Game
         public int totalSpins = 0;
         public int bonusSpins = 3;
         public int spinsForBonus = 0;
+
         public bool bonusActive = false;
         public bool announcingBonus = false;
+        public bool showHowToPlay = false;
 
         private Random random = new Random();
 
-        public Machine(ElementReference mainMenuScreen, ElementReference gameoverScreen, ElementReference background, ElementReference backgroundDark, ElementReference backgroundBonusSprite, ElementReference backgroundBonusSpriteDark, ElementReference symbols, ElementReference bonusSymbols, ElementReference star, ElementReference starParticle, ElementReference bonusRoundAnnouncement)
+        public Machine(ElementReference mainMenuScreen, ElementReference gameoverScreen, ElementReference background, ElementReference backgroundDark, ElementReference backgroundBonusSprite, ElementReference backgroundBonusSpriteDark, ElementReference symbols, ElementReference bonusSymbols, ElementReference star, ElementReference starParticle, ElementReference bonusRoundAnnouncement, ElementReference howToPlayScreen, ElementReference soundButtonOn, ElementReference soundButtonOff, ElementReference howToPlayButton)
         {
             mainMenu = new Overlay(mainMenuScreen);
             gameover = new Overlay(gameoverScreen);
@@ -49,6 +52,7 @@ namespace SpeakEZSlots.Game
             darkOverlay = new Overlay(backgroundDark);
             bonusOverlay = new Overlay(backgroundBonusSprite);
             bonusOverlayDark = new Overlay(backgroundBonusSpriteDark);
+            this.howToPlayScreen = new Overlay(howToPlayScreen);
             this.bonusRoundAnnouncement = new Overlay(bonusRoundAnnouncement);
 
             
@@ -57,7 +61,7 @@ namespace SpeakEZSlots.Game
 
             CalculateBonusState();
 
-            uiController = new UIController(this);
+            uiController = new UIController(this, soundButtonOn, soundButtonOff, howToPlayButton);
             soundController = new SoundController();
             currentState = new IdleState(this, uiController, soundController);
         }
@@ -137,7 +141,12 @@ namespace SpeakEZSlots.Game
 
             else if (menuState == menuStates.PLAYING)
             {
-                currentState.Update(deltaTime);
+                if (!showHowToPlay)
+                {
+                    currentState.Update(deltaTime);
+                }
+                
+                uiController.Update(deltaTime);
                 RenderPlayingGraphics();
 
                 if (!bonusActive)
@@ -231,6 +240,11 @@ namespace SpeakEZSlots.Game
             if (bonusRoundAnnouncement != null && announcingBonus)
             {
                 await bonusRoundAnnouncement.Render();
+            }
+
+            if(howToPlayScreen != null && showHowToPlay)
+            {
+                await howToPlayScreen.Render();
             }
         }
 

@@ -48,7 +48,7 @@
 
         private void HandlePlayerInput()
         {
-            if (InputController.playerInput[" "] == true && inputTimer <= 0)
+            if (InputController.playerInput[" "] == true && inputTimer <= 0 && machine.playerCredits >= machine.bet)
             {
                 soundController.PlaySpinSound();
 
@@ -80,7 +80,7 @@
                 }
             }
 
-            if (InputController.playerInput["ArrowUp"] == true && inputTimer <= 0)
+            if (InputController.playerInput["ArrowUp"] == true && inputTimer <= 0 && !machine.bonusActive && machine.freeSpins == 0)
             {
                 inputTimer = inputWaitTime;
                 if (machine.bet < machine.maxBet)
@@ -90,7 +90,7 @@
                 }
             }
 
-            if (InputController.playerInput["ArrowDown"] == true && inputTimer <= 0)
+            if (InputController.playerInput["ArrowDown"] == true && inputTimer <= 0 && !machine.bonusActive && machine.freeSpins == 0)
             {
                 inputTimer = inputWaitTime;
                 if (machine.bet > machine.minBet)
@@ -100,14 +100,14 @@
                 }
             }
 
-            if (InputController.playerInput["ArrowLeft"] == true && inputTimer <= 0)
+            if (InputController.playerInput["ArrowLeft"] == true && inputTimer <= 0 && !machine.bonusActive && machine.freeSpins == 0)
             {
                 inputTimer = inputWaitTime;
                 machine.bet = machine.minBet;
                 uiController.UpdatePlayerBet(machine.bet);
             }
 
-            if (InputController.playerInput["ArrowRight"] == true && inputTimer <= 0)
+            if (InputController.playerInput["ArrowRight"] == true && inputTimer <= 0 && !machine.bonusActive && machine.freeSpins == 0)
             {
                 inputTimer = inputWaitTime;
                 machine.bet = machine.maxBet;

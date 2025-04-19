@@ -37,9 +37,9 @@ namespace SpeakEZSlots.Game
             verticalScale = (canvas.Height / BaseGameParams["Height"]);
         }
 
-        public static void SetMachine(ElementReference mainMenuScreen, ElementReference gameOverScreen, ElementReference background, ElementReference backgroundDark, ElementReference backgroundBonus, ElementReference backgroundBonusDark, ElementReference symbols, ElementReference bonusSymbols, ElementReference star, ElementReference starParticle, ElementReference bonusRoundAnnouncement)
+        public static void SetMachine(ElementReference mainMenuScreen, ElementReference gameOverScreen, ElementReference background, ElementReference backgroundDark, ElementReference backgroundBonus, ElementReference backgroundBonusDark, ElementReference symbols, ElementReference bonusSymbols, ElementReference star, ElementReference starParticle, ElementReference bonusRoundAnnouncement, ElementReference howToPlayScreen, ElementReference soundButtonOn, ElementReference soundButtonOff, ElementReference howToPlayButton)
         {
-            currentMachine = new Machine(mainMenuScreen, gameOverScreen, background, backgroundDark, backgroundBonus, backgroundBonusDark, symbols, bonusSymbols, star, starParticle, bonusRoundAnnouncement);
+            currentMachine = new Machine(mainMenuScreen, gameOverScreen, background, backgroundDark, backgroundBonus, backgroundBonusDark, symbols, bonusSymbols, star, starParticle, bonusRoundAnnouncement, howToPlayScreen, soundButtonOn, soundButtonOff, howToPlayButton);
         }
 
         public static void Update(float deltaTime)

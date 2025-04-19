@@ -7,23 +7,27 @@
 <PageTitle>Home</PageTitle>
 
 <div class="GameScreenWrapper">
-	<div class="CanvasOverlay" onkeydown="@GetKeyPress" onkeyup="@GetKeyRelease" tabindex="0">
+	<div class="CanvasOverlay" onkeydown="@GetKeyPress" onkeyup="@GetKeyRelease" onmouseup="@GetMouseCoords" tabindex="0">
 		<BECanvas @ref="canvas" Width="canvasWidth" Height="canvasHeight"></BECanvas>
 	</div>
 </div>
 
 <div class="Graphics">
-	<img id="main-menu" src="/Assets/MainMenu.png" hidden @ref="mainMenuScreen"/>
-	<img id="gameover-screen" src="/Assets/GameoverScreen.png" hidden @ref="gameOverScreen"/>
-	<img id="background" src="/Assets/SlotMachineBorder.png" hidden @ref="backgroundSprite"/>
-	<img id="background-dark" src="/Assets/SlotMachineBorderDark.png" hidden @ref="backgroundSpriteDark"/>
-	<img id="background-bonus" src="/Assets/SlotMachineBorder_Bonus.png" hidden @ref="backgroundBonusSprite"/>
-	<img id="background-bonus-dark" src="/Assets/SlotMachineBorderDark_Bonus.png" hidden @ref="backgroundBonusSpriteDark"/>
-	<img id="symbols" src="/Assets/symbols.png" hidden @ref="symbols"/>
-	<img id="bonus-symbols" src="/Assets/bonusSymbols.png" hidden @ref="bonusSymbols"/>
-	<img id="star" src="/Assets/starBig.png" hidden @ref="star"/>
-	<img id="star-particle" src="/Assets/starParticle.png" hidden @ref="starParticle" />
-	<img id="bonus-announcement" src="/Assets/BonusRoundAnnouncement.png" hidden @ref="bonusRoundAnnouncement"/>
+	<img id="main-menu" src="Assets/MainMenu.png" hidden @ref="mainMenuScreen"/>
+	<img id="gameover-screen" src="Assets/GameoverScreen.png" hidden @ref="gameOverScreen"/>
+	<img id="background" src="Assets/SlotMachineBorder.png" hidden @ref="backgroundSprite"/>
+	<img id="background-dark" src="Assets/SlotMachineBorderDark.png" hidden @ref="backgroundSpriteDark"/>
+	<img id="background-bonus" src="Assets/SlotMachineBorder_Bonus.png" hidden @ref="backgroundBonusSprite"/>
+	<img id="background-bonus-dark" src="Assets/SlotMachineBorderDark_Bonus.png" hidden @ref="backgroundBonusSpriteDark"/>
+	<img id="symbols" src="Assets/symbols.png" hidden @ref="symbols"/>
+	<img id="bonus-symbols" src="Assets/bonusSymbols.png" hidden @ref="bonusSymbols"/>
+	<img id="star" src="Assets/starBig.png" hidden @ref="star"/>
+	<img id="star-particle" src="Assets/starParticle.png" hidden @ref="starParticle" />
+	<img id="bonus-announcement" src="Assets/BonusRoundAnnouncement.png" hidden @ref="bonusRoundAnnouncement"/>
+	<img id="how-to-play-screen" src="Assets/HowToPlay.png" hidden @ref="howToPlayScreen"/>
+	<img id="sound-button-on" src="Assets/soundbutton_on.png" hidden @ref="soundButtonOn"/>
+	<img id="sound-button-off" src="Assets/soundbutton_off.png" hidden @ref="soundButtonOff"/>
+	<img id="how-to-play-button" src="Assets/button_howto.png" hidden @ref="howToPlayButton"/>
 
 </div>
 
@@ -50,8 +54,12 @@
 	private ElementReference star;
 	private ElementReference starParticle;
 	private ElementReference bonusRoundAnnouncement;
+	private ElementReference howToPlayScreen;
 	private ElementReference mainMenuScreen;
 	private ElementReference gameOverScreen;
+	private ElementReference soundButtonOn;
+	private ElementReference soundButtonOff;
+	private ElementReference howToPlayButton;
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
@@ -67,7 +75,7 @@
 			lastFrameTime = DateTime.Now;
 			gameTimer = new System.Threading.Timer(GameLoop, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(16));
 
-			
+
 		}
 	}
 
@@ -84,7 +92,7 @@
 	private async Task SendAssetsToGame()
 	{
 		Game.SetComponents(canvas, context, JSModule);
-		Game.SetMachine(mainMenuScreen, gameOverScreen, backgroundSprite, backgroundSpriteDark, backgroundBonusSprite, backgroundBonusSpriteDark, symbols, bonusSymbols, star, starParticle, bonusRoundAnnouncement);
+		Game.SetMachine(mainMenuScreen, gameOverScreen, backgroundSprite, backgroundSpriteDark, backgroundBonusSprite, backgroundBonusSpriteDark, symbols, bonusSymbols, star, starParticle, bonusRoundAnnouncement, howToPlayScreen, soundButtonOn, soundButtonOff, howToPlayButton);
 	}
 
 	private async void GameLoop(object state)
@@ -113,6 +121,14 @@
 	public void GetKeyRelease(KeyboardEventArgs args)
 	{
 		InputController.ChangeInput(args.Key, false);
+	}
+
+	public void GetMouseCoords(MouseEventArgs args)
+	{
+		float xPos = (float)args.ClientX;
+		float yPos = (float)args.ClientY;
+
+		InputController.ChangeMouseCoords(xPos, yPos);
 	}
 
 	public class BrowserDimensions

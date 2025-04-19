@@ -148,7 +148,7 @@ namespace SpeakEZSlots.Game.MachineStates
                         }
                     }
 
-                    if (machine.playerCredits < machine.minBet)
+                    if ((machine.playerCredits + machine.winnings) < machine.minBet)
                     {
                         machine.menuState = menuStates.GAMEOVER;
                     }

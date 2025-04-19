@@ -170,6 +170,7 @@ namespace SpeakEZSlots.Game
             {
                 if(isSpinning)
                 {
+                    symbol.particle = null;
                     HandleSpinning(deltaTime, symbol);
                 }
                 else if (!isSpinning)
