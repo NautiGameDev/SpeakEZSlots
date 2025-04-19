@@ -6,7 +6,7 @@ https://nauti312.itch.io/speak-ez-slots
 
 ## How to play?
 
-## [Play Here](https://nauti312.itch.io/speak-ez-slots)
+### [Play Here](https://nauti312.itch.io/speak-ez-slots)
 
 This game runs completely in a web browser, so no download is required. However, the game requires a desktop/laptop to play since keyboard inputs are needed to interact with the game completely.
 
